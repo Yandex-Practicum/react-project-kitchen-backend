@@ -125,7 +125,12 @@ router.get('/feed', auth.required, function(req, res, next) {
 router.post('/', auth.required, function(req, res, next) {
   User.findById(req.payload.id).then(function(user){
     if (!user) { return res.sendStatus(401); }
-
+    if (req.body.article.image) {
+      req.body.article.image = {
+        ...req.body.article.image,
+        data: new Buffer.from(req.body.article.image.data, 'base64')
+      };
+    }
     var article = new Article(req.body.article);
 
     article.author = user;
@@ -167,6 +172,13 @@ router.put('/:article', auth.required, function(req, res, next) {
 
       if(typeof req.body.article.tagList !== 'undefined'){
         req.article.tagList = req.body.article.tagList
+      }
+
+      if (typeof req.body.article.image !== 'undefined') {
+        req.article.image = {
+          ...req.body.article.image,
+          data: new Buffer.from(req.body.article.image.data, 'base64')
+        };
       }
 
       req.article.save().then(function(article){
